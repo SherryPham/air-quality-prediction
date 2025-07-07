@@ -1,11 +1,7 @@
-.github\workflows/
-
-# Virtual environments
-.venv
-
-
-# Python cache
+.github/
+.venv/
 __pycache__/
+.streamlit/
 
 
 
