@@ -450,8 +450,13 @@ async def root():
 # Run the application with uvicorn if executed directly
 if __name__ == "__main__":
     import uvicorn
+    
+    # Fixed settings for local development
+    port = 8000
+    host = "0.0.0.0"  # Use 0.0.0.0 to allow external connections
+    
     print("Starting Air Quality API Server...")
-    print("API documentation will be available at http://localhost:8000/docs")
-    print("Server is accessible from other devices on the network at http://<your-ip-address>:8000")
-    print("Using host 0.0.0.0 to allow external connections")
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    print(f"API documentation will be available at http://localhost:{port}/docs")
+    print(f"Server is accessible from other devices on the network at http://<your-ip-address>:{port}")
+    
+    uvicorn.run("main:app", host=host, port=port, reload=True)

@@ -24,11 +24,20 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# API URL - change this if your FastAPI server runs on a different address
+# API URL configuration
+# Fixed URL for local development
 API_BASE_URL = "http://127.0.0.1:8000"
 
-# Uncomment and edit the line below when deploying with a public URL
-# API_BASE_URL = "https://your-fastapi-public-url-here"
+# Simple API connection control in sidebar
+with st.sidebar:
+    st.header("API Connection")
+    user_api_url = st.text_input("API URL", value=API_BASE_URL)
+    if st.button("Connect"):
+        API_BASE_URL = user_api_url
+        st.success(f"Connected to: {API_BASE_URL}")
+        
+# Display current API connection
+st.sidebar.info(f"Connected to API at: {API_BASE_URL}")
 
 # Helper function to make API requests
 def make_api_request(endpoint, data=None, method="GET"):
@@ -47,13 +56,17 @@ def make_api_request(endpoint, data=None, method="GET"):
 # Check if the server is running
 def check_api_status():
     try:
-        # Use the root endpoint instead of /health
-        response = requests.get(f"{API_BASE_URL}/", timeout=2)
+        # Use the root endpoint
+        response = requests.get(f"{API_BASE_URL}/", timeout=5)
         if response.status_code == 200:
-            return True
-        return False
-    except:
-        return False
+            return True, None
+        return False, f"API returned status code {response.status_code}"
+    except requests.exceptions.ConnectionError:
+        return False, f"Cannot connect to API at {API_BASE_URL}"
+    except requests.exceptions.Timeout:
+        return False, f"Connection timeout to API at {API_BASE_URL}"
+    except Exception as e:
+        return False, f"Error connecting to API: {str(e)}"
 
 #############################################
 # MODEL 1: AQI PREDICTION
@@ -409,17 +422,23 @@ def main():
     st.title("Air Quality Prediction Dashboard")
     
     # Check API status
-    if not check_api_status():
-        st.error("""
+    api_status, error_msg = check_api_status()
+    if not api_status:
+        st.error(f"""
         ## ⚠️ API Server Not Running
         
-        The FastAPI server doesn't appear to be running at http://127.0.0.1:8000.
+        The FastAPI server doesn't appear to be running.
         
-        Please start the server first with:
+        Please start the server by running:
         ```
         python main.py
         ```
+        in another terminal window.
         """)
+        
+        if st.button("Try Again"):
+            st.rerun()
+            
         return
     
     # Create tabs
